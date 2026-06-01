@@ -167,6 +167,22 @@ describe('queue dispatch + 307 trampoline', () => {
     expect(completed).toBe(true);
   });
 
+  it('satisfies the health-check probe on both workflow and step endpoints', async () => {
+    harness = await startHarness(() => ({
+      flow: async () => undefined,
+    }));
+    const { healthCheck, setWorld } = await import('@workflow/core/runtime');
+    setWorld(harness.world);
+    try {
+      const wf = await healthCheck(harness.world, 'workflow', { timeout: 5000 });
+      expect(wf.healthy).toBe(true);
+      const step = await healthCheck(harness.world, 'step', { timeout: 5000 });
+      expect(step.healthy).toBe(true);
+    } finally {
+      setWorld(undefined);
+    }
+  });
+
   it('delays delivery by delaySeconds', async () => {
     const times: number[] = [];
     const enqueuedAt = Date.now();

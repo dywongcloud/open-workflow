@@ -1,8 +1,10 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
+import { handleHealthCheckMessage } from '@workflow/core/runtime/helpers';
 import {
   MessageId,
   type Queue,
   type QueuePayload,
+  SPEC_VERSION_SUPPORTS_EVENT_SOURCING,
   ValidQueueName,
 } from '@workflow/world';
 import type { RedisClient } from './client/types.js';
@@ -199,11 +201,34 @@ export function createQueue(
         };
       }
 
+      const message = decodeBlob<QueuePayload>(job.body);
+
+      // Health-check probe: the dashboard fires these against BOTH the
+      // workflow and step queues. In the V2 combined-handler model nothing is
+      // registered for `__wkf_step_*` (steps run inline), so the step probe
+      // would otherwise fall through to a 400. Satisfy the probe directly by
+      // calling the runtime helper, which writes the response stream that
+      // healthCheck() is waiting on. The endpoint is derived from the actual
+      // queue name on the job (not the wrapper's `prefix`), so the same code
+      // path serves both probes.
+      const hc = (message as any)?.__healthCheck === true ? (message as any) : null;
+      if (hc) {
+        const endpoint = job.queueName.startsWith('__wkf_step_')
+          ? 'step'
+          : 'workflow';
+        await handleHealthCheckMessage(
+          hc,
+          endpoint,
+          SPEC_VERSION_SUPPORTS_EVENT_SOURCING
+        );
+        if (msgId) await deleteJob(msgId);
+        return Response.json({ ok: true });
+      }
+
       if (!job.queueName.startsWith(prefix)) {
         return Response.json({ error: 'Unhandled queue' }, { status: 400 });
       }
 
-      const message = decodeBlob<QueuePayload>(job.body);
       const runId =
         (message as any)?.runId ?? (message as any)?.workflowRunId;
 
@@ -293,13 +318,13 @@ export function createQueue(
         body: '',
       });
       // The handler wrapper owns its own job's retry/timeout/completion
-      // lifecycle (it has the durable msgId). A non-OK HTTP response means
-      // the wrapper already rescheduled or completed; we only log here so we
-      // don't double-increment the attempt counter.
-      if (!res.ok && res.status >= 500) {
+      // lifecycle (it has the durable msgId). Log every non-2xx so failures
+      // between dispatcher and handler are never silent — a 404 on the flow
+      // route, a 400 from a queue-name mismatch, etc.
+      if (!res.ok) {
         const text = await res.text().catch(() => '');
         console.error(
-          `[world-redis] dispatch ${messageId} returned HTTP ${res.status}: ${text.slice(0, 200)}`
+          `[world-redis] dispatch ${messageId} (${job.queueName}) -> HTTP ${res.status} ${res.url}: ${text.slice(0, 300)}`
         );
       }
     } catch (err) {

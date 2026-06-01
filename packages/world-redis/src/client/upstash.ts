@@ -114,8 +114,22 @@ export class UpstashRedisClient implements RedisClient {
   }
 
   async hgetAll(key: string): Promise<Record<string, string>> {
-    const res = await this.redis.hgetall<Record<string, string>>(key);
-    return res ?? {};
+    // With `automaticDeserialization: false`, Upstash bypasses the per-command
+    // deserializer for HGETALL and returns the raw RESP shape — a flat array
+    // `[field1, value1, field2, value2, ...]` — instead of an object map.
+    // Pivot it back into a field map ourselves so callers get a stable shape.
+    const res = (await this.redis.hgetall<Record<string, unknown>>(key)) as unknown;
+    if (!res) return {};
+    if (Array.isArray(res)) {
+      const obj: Record<string, string> = {};
+      for (let i = 0; i < res.length; i += 2) {
+        const k = String(res[i] ?? '');
+        const v = res[i + 1];
+        if (k) obj[k] = typeof v === 'string' ? v : String(v ?? '');
+      }
+      return obj;
+    }
+    return res as Record<string, string>;
   }
 
   async hdel(key: string, ...fields: string[]): Promise<number> {

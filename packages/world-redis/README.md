@@ -79,6 +79,17 @@ dashboard) that should not drive execution.
 - **At-least-once + idempotent**: every continuation is a durable Redis job;
   duplicate delivery is safe because the runtime replays the event log.
 
+## Upstash REST behaviour note
+
+The Upstash REST client is constructed with `automaticDeserialization: false` so
+job/event payloads round-trip as raw base64 strings (auto-JSON-parsing would
+corrupt values that happen to look like JSON). One consequence: Upstash's
+per-command deserialiser for `HGETALL` is also bypassed, so the raw RESP
+response (`[f1, v1, f2, v2, ...]` as a flat array) reaches the adapter instead
+of an object map. The adapter pivots it back into a field map before returning
+— this was the cause of the 0.1.2 fix; if you see "every run stuck in `pending`
+with no `run_started` event" on a build older than 0.1.2, that's why.
+
 ## License
 
 Apache-2.0.

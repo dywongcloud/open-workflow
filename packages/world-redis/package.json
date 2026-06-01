@@ -1,6 +1,6 @@
 {
   "name": "@open-workflow/world-redis",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Vendor-agnostic Redis World backend for the Workflow SDK — durable state in Redis, execution dispatch via 307 redirects + query params. A drop-in replacement for @workflow/world-vercel.",
   "type": "module",
   "license": "Apache-2.0",
@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "@upstash/redis": "^1.35.0",
+    "@workflow/core": "5.0.0-beta.8",
     "@workflow/errors": "5.0.0-beta.5",
     "@workflow/world": "5.0.0-beta.5",
     "cbor-x": "^1.6.0",

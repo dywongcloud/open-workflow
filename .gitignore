@@ -11,3 +11,5 @@ dist
 *.log
 .DS_Store
 .open-workflow
+*.rdb
+examples/standalone/.well-known/workflow/
