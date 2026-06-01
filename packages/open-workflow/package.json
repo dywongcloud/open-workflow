@@ -1,0 +1,38 @@
+{
+  "name": "open-workflow",
+  "version": "0.1.0",
+  "description": "Vendor-agnostic durable workflows for JavaScript/TypeScript. A 1:1 drop-in facade over the Workflow SDK developer API, backed by Redis + 307 redirects instead of a proprietary queue.",
+  "type": "module",
+  "license": "Apache-2.0",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./api": {
+      "types": "./dist/api.d.ts",
+      "default": "./dist/api.js"
+    },
+    "./redis": {
+      "types": "./dist/redis.d.ts",
+      "default": "./dist/redis.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@open-workflow/world-redis": "workspace:*",
+    "workflow": "5.0.0-beta.8"
+  },
+  "devDependencies": {
+    "@types/node": "22.19.0",
+    "typescript": "^5.9.3"
+  }
+}

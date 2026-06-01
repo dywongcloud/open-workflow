@@ -1,0 +1,41 @@
+{
+  "name": "@open-workflow/world-redis",
+  "version": "0.1.0",
+  "description": "Vendor-agnostic Redis World backend for the Workflow SDK — durable state in Redis, execution dispatch via 307 redirects + query params. A drop-in replacement for @workflow/world-vercel.",
+  "type": "module",
+  "license": "Apache-2.0",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./client": {
+      "types": "./dist/client/index.d.ts",
+      "default": "./dist/client/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "test": "vitest run src",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@upstash/redis": "^1.35.0",
+    "@workflow/errors": "5.0.0-beta.5",
+    "@workflow/world": "5.0.0-beta.5",
+    "cbor-x": "^1.6.0",
+    "redis": "^4.7.0",
+    "ulid": "~3.0.1",
+    "zod": "4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "22.19.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  }
+}

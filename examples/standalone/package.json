@@ -1,0 +1,22 @@
+{
+  "name": "@open-workflow/example-standalone",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "scripts": {
+    "build": "workflow build --target standalone",
+    "host": "open-workflow-host",
+    "demo": "node run-demo.mjs",
+    "test:e2e": "vitest run"
+  },
+  "dependencies": {
+    "@open-workflow/host": "workspace:*",
+    "@open-workflow/world-redis": "workspace:*",
+    "workflow": "5.0.0-beta.8"
+  },
+  "devDependencies": {
+    "@workflow/cli": "5.0.0-beta.8",
+    "@types/node": "22.19.0",
+    "vitest": "^4.0.18"
+  }
+}

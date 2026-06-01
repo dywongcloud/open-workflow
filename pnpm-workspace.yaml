@@ -1,0 +1,9 @@
+packages:
+  - "packages/*"
+  - "examples/*"
+
+onlyBuiltDependencies:
+  - esbuild
+  - "@swc/core"
+  - cbor-extract
+  - "@nestjs/core"
