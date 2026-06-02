@@ -11,7 +11,7 @@ ElastiCache, Upstash, …) using **307 redirects + query params** as the
 dispatch mechanism.
 
 > The developer experience is identical. The only thing that changes is the
-> backend: set `WORKFLOW_TARGET_WORLD=@open-workflow/world-redis` and point it
+> backend: set `WORKFLOW_TARGET_WORLD=@open-workflow/world-redirect` and point it
 > at a Redis. No code changes to your workflows.
 
 ## Why
@@ -58,7 +58,8 @@ start(wf) ──> Redis schedule ──> dispatcher ──POST?msg=A──> flow
 
 | Package | Description |
 | --- | --- |
-| [`@open-workflow/world-redis`](packages/world-redis) | The Redis `World`: storage (event-sourcing), the 307 dispatcher + scheduler, the streamer. Supports node-redis (RESP), Upstash REST, and a zero-setup in-memory client. |
+| [`@open-workflow/world-redirect`](packages/world-redirect) | The Redis `World`: storage (event-sourcing), the 307 dispatcher + scheduler, the streamer. Supports node-redis (RESP), Upstash REST, and a zero-setup in-memory client. (Renamed from `@open-workflow/world-redis` in 0.2.0 — the dispatch model is the defining feature, not the storage.) |
+| [`@open-workflow/world-edgeone`](packages/world-edgeone) | EdgeOne Pages / OpenNext-flavoured wrapper around `world-redirect`. Bundles a `withEdgeOneWorkflow()` Next.js config helper plus copy-pasteable templates for the `@workflow/world-vercel` shim and the `/api/wf/*` mirror routes needed to deploy through OpenNext-based platforms. |
 | [`@open-workflow/host`](packages/host) | A self-hostable Node HTTP host that serves the workflow flow/webhook endpoints and runs the 307 dispatch pump. |
 | [`open-workflow`](packages/open-workflow) | 1:1 facade re-exporting the `workflow` developer API, plus `open-workflow/redis` for backend construction. |
 
@@ -71,7 +72,7 @@ cd examples/standalone
 pnpm build                      # compiles workflows -> .well-known/workflow/v1
 WORKFLOW_REDIS_URL=redis://localhost:6379 pnpm host   # serves + dispatches
 # in another shell, trigger by name (canonical):
-WORKFLOW_TARGET_WORLD=@open-workflow/world-redis \
+WORKFLOW_TARGET_WORLD=@open-workflow/world-redirect \
 WORKFLOW_REDIS_URL=redis://localhost:6379 \
   pnpm exec workflow start hello '"World"'
 ```
@@ -87,8 +88,8 @@ cd examples/standalone && pnpm build && WORKFLOW_REDIS_URL=memory pnpm demo
 ```ts
 // next.config.ts
 import { withWorkflow } from 'workflow/next';
-process.env.WORKFLOW_TARGET_WORLD ||= '@open-workflow/world-redis';
-export default withWorkflow({ serverExternalPackages: ['@open-workflow/world-redis'] });
+process.env.WORKFLOW_TARGET_WORLD ||= '@open-workflow/world-redirect';
+export default withWorkflow({ serverExternalPackages: ['@open-workflow/world-redirect'] });
 ```
 
 ```bash
@@ -108,7 +109,7 @@ The WDK's observability dashboard (`@workflow/web`) works unchanged — point it
 at the same Redis:
 
 ```bash
-WORKFLOW_TARGET_WORLD=@open-workflow/world-redis \
+WORKFLOW_TARGET_WORLD=@open-workflow/world-redirect \
 WORKFLOW_REDIS_URL=redis://localhost:6379 \
 WORKFLOW_REDIS_DISABLE_DISPATCHER=1 \
 PORT=4000 \
@@ -116,7 +117,7 @@ PORT=4000 \
 ```
 
 It lists runs, steps, events, hooks and streams by reading the Redis `World`
-directly. Run it from a directory where `@open-workflow/world-redis` resolves.
+directly. Run it from a directory where `@open-workflow/world-redirect` resolves.
 
 ## Configuration
 
@@ -125,20 +126,20 @@ mirroring the other worlds:
 
 | Env var | Purpose |
 | --- | --- |
-| `WORKFLOW_TARGET_WORLD` | Set to `@open-workflow/world-redis` |
+| `WORKFLOW_TARGET_WORLD` | Set to `@open-workflow/world-redirect` |
 | `WORKFLOW_REDIS_URL` | RESP URL (`redis://…`), or `memory` for dev |
 | `WORKFLOW_REDIS_REST_URL` / `WORKFLOW_REDIS_REST_TOKEN` | Upstash REST credentials |
 | `WORKFLOW_REDIS_KEY_PREFIX` | Key namespace (default `owf`) |
 | `WORKFLOW_BASE_URL` | Where the dispatcher posts (your server's URL) |
 | `WORKFLOW_DEPLOYMENT_ID` | Reported by `getDeploymentId()` |
 
-See [`packages/world-redis`](packages/world-redis) for the full list (poll
+See [`packages/world-redirect`](packages/world-redirect) for the full list (poll
 interval, max attempts, retry backoff, dispatcher toggle).
 
 ## Testing
 
 ```bash
-pnpm test                                   # world-redis unit tests (memory + real Redis)
+pnpm test                                   # world-redirect unit tests (memory + real Redis)
 cd examples/standalone && pnpm test:e2e     # full-stack e2e (host + 307 + webhook resume)
 ```
 

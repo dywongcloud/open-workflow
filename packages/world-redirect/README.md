@@ -1,4 +1,4 @@
-# @open-workflow/world-redis
+# @open-workflow/world-redirect
 
 A vendor-agnostic Redis [`World`](https://github.com/vercel/workflow) backend
 for the Workflow SDK — a drop-in replacement for `@workflow/world-vercel`.
@@ -18,14 +18,14 @@ for the Workflow SDK — a drop-in replacement for `@workflow/world-vercel`.
 The Workflow runtime loads this world when `WORKFLOW_TARGET_WORLD` points at it:
 
 ```bash
-WORKFLOW_TARGET_WORLD=@open-workflow/world-redis
+WORKFLOW_TARGET_WORLD=@open-workflow/world-redirect
 WORKFLOW_REDIS_URL=redis://localhost:6379
 ```
 
 Or construct one programmatically:
 
 ```ts
-import { createRedisWorld } from '@open-workflow/world-redis';
+import { createRedisWorld } from '@open-workflow/world-redirect';
 
 const world = createRedisWorld({ redisUrl: 'redis://localhost:6379' });
 await world.start();           // launches the 307 dispatch pump + recovers runs
@@ -43,7 +43,7 @@ createRedisWorld({
 In-memory (dev/tests, non-durable):
 
 ```ts
-import { MemoryRedisClient } from '@open-workflow/world-redis';
+import { MemoryRedisClient } from '@open-workflow/world-redirect';
 createRedisWorld({ client: new MemoryRedisClient() });
 // or: WORKFLOW_REDIS_URL=memory
 ```

@@ -4,7 +4,7 @@ import type { RedisClient, SetOptions, ZRangeByScoreOptions } from './types.js';
 /**
  * Adapter over `@upstash/redis` REST client for serverless/edge Redis.
  *
- * `automaticDeserialization: false` is REQUIRED: world-redis stores opaque
+ * `automaticDeserialization: false` is REQUIRED: world-redirect stores opaque
  * base64 strings, and Upstash's default JSON auto-deserialization would
  * corrupt values that happen to look like JSON/numbers. With it disabled,
  * values round-trip as raw strings exactly like the RESP adapter.

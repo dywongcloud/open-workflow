@@ -3,7 +3,7 @@
 // (defaults to redis://127.0.0.1:6379) and a prior `pnpm build`.
 
 const PORT = Number(process.env.PORT ?? 3010);
-process.env.WORKFLOW_TARGET_WORLD = '@open-workflow/world-redis';
+process.env.WORKFLOW_TARGET_WORLD = '@open-workflow/world-redirect';
 process.env.WORKFLOW_REDIS_URL ??= 'redis://127.0.0.1:6379';
 process.env.WORKFLOW_REDIS_KEY_PREFIX ??= `demo_${Date.now()}`;
 process.env.WORKFLOW_BASE_URL = `http://localhost:${PORT}`;

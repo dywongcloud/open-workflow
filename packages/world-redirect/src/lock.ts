@@ -69,7 +69,7 @@ export class RunLocks {
     // mutex still guards same-process correctness). Returning '' means
     // release() is a no-op so we never clobber another holder's lock.
     console.warn(
-      `[world-redis] run lock acquire timed out for ${runId}; proceeding without distributed lock`
+      `[world-redirect] run lock acquire timed out for ${runId}; proceeding without distributed lock`
     );
     return '';
   }

@@ -7,7 +7,7 @@
  * hooks, metadata accessors, etc.
  *
  * The only thing that changes versus the proprietary setup is the backend:
- * set `WORKFLOW_TARGET_WORLD=@open-workflow/world-redis` and provide a Redis
+ * set `WORKFLOW_TARGET_WORLD=@open-workflow/world-redirect` and provide a Redis
  * connection. See `open-workflow/redis` for programmatic world construction
  * and `@open-workflow/host` for self-hosting.
  *

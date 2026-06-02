@@ -253,7 +253,7 @@ export function createQueue(
             await scheduleJob(msgId, Date.now() + backoffMs(nextAttempt, config.retryBaseMs));
           } else {
             console.error(
-              `[world-redis] job ${msgId} (${job.queueName}) exhausted ${config.maxAttempts} attempts; dropping`,
+              `[world-redirect] job ${msgId} (${job.queueName}) exhausted ${config.maxAttempts} attempts; dropping`,
               { runId }
             );
             await deleteJob(msgId);
@@ -324,7 +324,7 @@ export function createQueue(
       if (!res.ok) {
         const text = await res.text().catch(() => '');
         console.error(
-          `[world-redis] dispatch ${messageId} (${job.queueName}) -> HTTP ${res.status} ${res.url}: ${text.slice(0, 300)}`
+          `[world-redirect] dispatch ${messageId} (${job.queueName}) -> HTTP ${res.status} ${res.url}: ${text.slice(0, 300)}`
         );
       }
     } catch (err) {
@@ -340,7 +340,7 @@ export function createQueue(
       } else {
         await deleteJob(messageId);
       }
-      console.error(`[world-redis] dispatch ${messageId} network error:`, err);
+      console.error(`[world-redirect] dispatch ${messageId} network error:`, err);
     }
   }
 
@@ -379,7 +379,7 @@ export function createQueue(
       try {
         await drainOnce();
       } catch (err) {
-        console.error('[world-redis] dispatcher tick error:', err);
+        console.error('[world-redirect] dispatcher tick error:', err);
       }
       if (!running) return;
       await new Promise<void>((resolve) => {

@@ -1,4 +1,17 @@
-# @open-workflow/world-redis
+# @open-workflow/world-redirect
+
+## 0.2.0 — 2026-06-02
+
+### Changed
+
+- **Renamed `@open-workflow/world-redis` → `@open-workflow/world-redirect`.** The original name described the storage tier, but the defining feature of this World is the **307-redirect dispatch trampoline** that replaces a queue broker on the hot path — Redis is just the durable backing. Renaming makes the dispatch model explicit at the package level. Internal class names (`NodeRedisClient`, `UpstashRedisClient`, `MemoryRedisClient`, `RedisClient`) keep the `Redis` prefix because they remain accurate descriptions of what they implement.
+
+  **Migration:**
+  - `WORKFLOW_TARGET_WORLD=@open-workflow/world-redis` → `WORKFLOW_TARGET_WORLD=@open-workflow/world-redirect`
+  - `import { ... } from '@open-workflow/world-redis'` → `import { ... } from '@open-workflow/world-redirect'`
+  - Log prefix changed from `[world-redis]` to `[world-redirect]`.
+
+  No API changes; this is a pure rename. Pin `0.1.x` if you need the old name.
 
 ## 0.1.2 — 2026-06-01
 

@@ -9,7 +9,7 @@ const flowPath = path.join(dir, '.well-known', 'workflow', 'v1', 'flow.mjs');
 
 // Self-contained: uses the in-memory world so no external Redis is required.
 // Set TEST_REDIS_URL to run the same suite against a real Redis instead.
-process.env.WORKFLOW_TARGET_WORLD = '@open-workflow/world-redis';
+process.env.WORKFLOW_TARGET_WORLD = '@open-workflow/world-redirect';
 process.env.WORKFLOW_REDIS_URL = process.env.TEST_REDIS_URL ?? 'memory';
 process.env.WORKFLOW_REDIS_KEY_PREFIX = `e2e_${Date.now()}`;
 

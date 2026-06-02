@@ -78,7 +78,7 @@ export function createRedisWorld(config: RedisWorldConfig = {}): RedisWorld {
     async start() {
       if (resolved.startDispatcher) queue.startDispatcher();
       if (resolved.recoverActiveRuns) {
-        await reenqueueActiveRuns(storage.runs, queue.queue, 'world-redis');
+        await reenqueueActiveRuns(storage.runs, queue.queue, 'world-redirect');
       }
     },
     async close() {
@@ -104,7 +104,7 @@ function cacheKey(): string {
 
 /**
  * Entry point used by the Workflow runtime when
- * `WORKFLOW_TARGET_WORLD=@open-workflow/world-redis`. Returns a process-wide
+ * `WORKFLOW_TARGET_WORLD=@open-workflow/world-redirect`. Returns a process-wide
  * singleton so the flow handler, the dispatcher and observability all share
  * one world (and one AsyncLocalStorage for the 307 hot path).
  */

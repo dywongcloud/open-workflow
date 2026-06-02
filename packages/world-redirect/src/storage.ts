@@ -163,7 +163,7 @@ export function createStorage(
       }
       if (isLegacySpecVersion(currentRun.specVersion)) {
         throw new WorkflowWorldError(
-          `world-redis does not support legacy (specVersion 1) run "${effectiveRunId}"`
+          `world-redirect does not support legacy (specVersion 1) run "${effectiveRunId}"`
         );
       }
     }

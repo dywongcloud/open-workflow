@@ -1,6 +1,6 @@
 {
-  "name": "@open-workflow/world-redis",
-  "version": "0.1.2",
+  "name": "@open-workflow/world-redirect",
+  "version": "0.2.0",
   "description": "Vendor-agnostic Redis World backend for the Workflow SDK — durable state in Redis, execution dispatch via 307 redirects + query params. A drop-in replacement for @workflow/world-vercel.",
   "type": "module",
   "license": "Apache-2.0",

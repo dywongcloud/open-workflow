@@ -24,7 +24,7 @@ function normalizeRange(
 
 /**
  * In-memory implementation of {@link RedisClient}. Faithful to the Redis
- * semantics world-redis relies on (string values, NX/PX, sorted sets ordered
+ * semantics world-redirect relies on (string values, NX/PX, sorted sets ordered
  * by score then member, list ranges, hashes, pub/sub, and the compare-and-del
  * unlock script).
  *
@@ -228,7 +228,7 @@ export class MemoryRedisClient implements RedisClient {
   }
 
   async eval(script: string, keys: string[], args: string[]): Promise<unknown> {
-    // Emulate the only script world-redis uses: compare-and-delete unlock.
+    // Emulate the only script world-redirect uses: compare-and-delete unlock.
     if (script.includes("redis.call('del'") && script.includes("redis.call('get'")) {
       const key = keys[0]!;
       if (this.alive(key) && this.strings.get(key)!.value === args[0]) {

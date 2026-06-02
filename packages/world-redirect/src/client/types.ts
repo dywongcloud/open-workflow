@@ -1,5 +1,5 @@
 /**
- * A minimal, uniform Redis interface used by world-redis.
+ * A minimal, uniform Redis interface used by world-redirect.
  *
  * Two adapters implement it:
  *  - node-redis (standard RESP TCP Redis: self-hosted, ElastiCache, etc.)

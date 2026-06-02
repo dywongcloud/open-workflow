@@ -35,7 +35,7 @@ const SAFE_ID = /^[A-Za-z0-9_-]+$/;
 export function assertSafeEntityId(name: string, value: string): void {
   if (!SAFE_ID.test(value)) {
     throw new Error(
-      `[world-redis] Invalid ${name} "${value}": must match ${SAFE_ID}`
+      `[world-redirect] Invalid ${name} "${value}": must match ${SAFE_ID}`
     );
   }
 }

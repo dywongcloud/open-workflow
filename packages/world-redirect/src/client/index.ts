@@ -32,7 +32,7 @@ export function createRedisClient(
     return new NodeRedisClient(config.redisUrl);
   }
   throw new Error(
-    '[world-redis] No Redis connection configured. Set one of:\n' +
+    '[world-redirect] No Redis connection configured. Set one of:\n' +
       '  - WORKFLOW_REDIS_URL (e.g. redis://localhost:6379), or\n' +
       '  - WORKFLOW_REDIS_REST_URL + WORKFLOW_REDIS_REST_TOKEN (Upstash REST),\n' +
       'or pass { redisUrl } / { upstashUrl, upstashToken } / { client } to createWorld().'

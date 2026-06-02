@@ -48,10 +48,10 @@ async function importRoute(file: string): Promise<Record<string, RouteHandler> |
 }
 
 /**
- * Start a self-hostable workflow host backed by @open-workflow/world-redis.
+ * Start a self-hostable workflow host backed by @open-workflow/world-redirect.
  *
  * Serves the standalone build's flow + webhook endpoints and runs the 307
- * dispatch pump. The flow handler and the dispatcher share one world-redis
+ * dispatch pump. The flow handler and the dispatcher share one world-redirect
  * singleton (resolved from node_modules), so enqueues from the runtime and the
  * pump coordinate through the same Redis.
  */
@@ -62,7 +62,7 @@ export async function startHost(options: HostOptions = {}): Promise<RunningHost>
 
   // Configure target world / connection up front; baseUrl is resolved after
   // listen() so an ephemeral port (0) produces a correct dispatcher URL.
-  process.env.WORKFLOW_TARGET_WORLD ??= '@open-workflow/world-redis';
+  process.env.WORKFLOW_TARGET_WORLD ??= '@open-workflow/world-redirect';
   if (options.redisUrl) process.env.WORKFLOW_REDIS_URL = options.redisUrl;
 
   const v1Dir = path.join(workDir, '.well-known', 'workflow', 'v1');

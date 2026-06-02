@@ -1,0 +1,40 @@
+{
+  "name": "@open-workflow/world-edgeone",
+  "version": "0.1.0",
+  "description": "EdgeOne Pages / OpenNext-flavoured wrapper around @open-workflow/world-redirect. Adds the platform-specific Next.js config helper, the @workflow/world-vercel shim, and mirror route templates so the canonical .well-known/workflow/v1/* URLs work on platforms that strip dot-prefix directories from the deploy artifact.",
+  "type": "module",
+  "license": "Apache-2.0",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./next": {
+      "types": "./dist/with-edgeone.d.ts",
+      "default": "./dist/with-edgeone.js"
+    },
+    "./templates/*": "./templates/*"
+  },
+  "files": ["dist", "templates"],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@open-workflow/world-redirect": "workspace:*"
+  },
+  "peerDependencies": {
+    "next": ">=15",
+    "workflow": "5.0.0-beta.8"
+  },
+  "devDependencies": {
+    "@types/node": "22.19.0",
+    "next": "16.2.7",
+    "typescript": "^5.9.3",
+    "workflow": "5.0.0-beta.8"
+  }
+}

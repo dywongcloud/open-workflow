@@ -22,7 +22,7 @@ export class NodeRedisClient implements RedisClient {
     this.client = createClient({ url });
     // Prevent unhandled 'error' events from crashing the process; surface them.
     this.client.on('error', (err: unknown) => {
-      console.error('[world-redis] node-redis client error:', err);
+      console.error('[world-redirect] node-redis client error:', err);
     });
   }
 
@@ -179,7 +179,7 @@ export class NodeRedisClient implements RedisClient {
         if (!this.subscriber) {
           this.subscriber = this.client.duplicate();
           this.subscriber.on('error', (err: unknown) => {
-            console.error('[world-redis] node-redis subscriber error:', err);
+            console.error('[world-redirect] node-redis subscriber error:', err);
           });
           await this.subscriber.connect();
         }
