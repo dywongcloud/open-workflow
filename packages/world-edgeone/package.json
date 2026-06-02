@@ -1,7 +1,7 @@
 {
   "name": "@open-workflow/world-edgeone",
-  "version": "0.1.0",
-  "description": "EdgeOne Pages / OpenNext-flavoured wrapper around @open-workflow/world-redirect. Adds the platform-specific Next.js config helper, the @workflow/world-vercel shim, and mirror route templates so the canonical .well-known/workflow/v1/* URLs work on platforms that strip dot-prefix directories from the deploy artifact.",
+  "version": "0.2.0",
+  "description": "EdgeOne Pages / OpenNext-flavoured Workflow World. Default subpath wraps @open-workflow/world-redirect for Redis-backed deployments; the /kv subpath ships a self-contained World that uses EdgeOne Pages KV as the entire backend (storage + queue + streams).",
   "type": "module",
   "license": "Apache-2.0",
   "main": "./dist/index.js",
@@ -15,6 +15,10 @@
       "types": "./dist/with-edgeone.d.ts",
       "default": "./dist/with-edgeone.js"
     },
+    "./kv": {
+      "types": "./dist/kv/index.d.ts",
+      "default": "./dist/kv/index.js"
+    },
     "./templates/*": "./templates/*"
   },
   "files": ["dist", "templates"],
@@ -22,10 +26,15 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "node --test --import tsx ./test/kv.test.ts"
   },
   "dependencies": {
-    "@open-workflow/world-redirect": "workspace:*"
+    "@open-workflow/world-redirect": "workspace:*",
+    "@workflow/errors": "5.0.0-beta.5",
+    "@workflow/world": "5.0.0-beta.5",
+    "cbor-x": "^1.6.0",
+    "ulid": "~3.0.1"
   },
   "peerDependencies": {
     "next": ">=15",
@@ -34,6 +43,7 @@
   "devDependencies": {
     "@types/node": "22.19.0",
     "next": "16.2.7",
+    "tsx": "4.20.3",
     "typescript": "^5.9.3",
     "workflow": "5.0.0-beta.8"
   }

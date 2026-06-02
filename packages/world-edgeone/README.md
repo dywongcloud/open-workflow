@@ -1,12 +1,23 @@
 # @open-workflow/world-edgeone
 
-EdgeOne Pages / OpenNext-flavoured wrapper around
-[`@open-workflow/world-redirect`](../world-redirect). The World implementation
-itself (Redis storage + 307-redirect dispatch) is identical to
-`world-redirect` — what this package adds is every platform-specific
-workaround we discovered shipping a real bot to EdgeOne, bundled into one
-`withEdgeOneWorkflow()` helper plus copy-pasteable templates for the parts
-that have to live in the consumer repo.
+EdgeOne Pages / OpenNext-flavoured Workflow World. Ships **two backends in
+one package** — pick whichever fits your operational model:
+
+| Subpath | Backend | When to pick |
+| --- | --- | --- |
+| `@open-workflow/world-edgeone` (default) | Redis + 307 trampoline (delegates to [`world-redirect`](../world-redirect)) | High-throughput, multi-host, pub/sub-backed streams, you already have Redis. |
+| `@open-workflow/world-edgeone/kv` | **EdgeOne Pages KV** (storage + queue + streams all in KV) | Zero-Redis EdgeOne deploys. Storage is the same KV namespace your function already binds to — no extra service to provision, no creds to rotate. |
+
+The default subpath is the original 0.1.0 behaviour — Redis storage +
+307-redirect dispatch — wrapped with every platform-specific workaround we
+discovered shipping a real bot to EdgeOne (env-purging, eager discovery,
+`beforeFiles` rewrites, the `@workflow/world-vercel` shim, mirror routes
+under `/api/wf/*`).
+
+The `/kv` subpath is new in 0.2.0. It removes the Redis dependency entirely
+by using EdgeOne's native KV store as the durable substrate for runs,
+events, steps, hooks, waits, the scheduler, and stream chunks. See [Using
+the KV backend](#using-the-kv-backend) below.
 
 Although named "edgeone", this should also work on other OpenNext-based
 deployment targets (Cloudflare Pages, etc.) that share the same dot-prefix
@@ -158,6 +169,120 @@ You should get JSON back including:
 
 A `500` or non-JSON response here means one of the four setup steps
 above is missing.
+
+## Using the KV backend
+
+Set `WORKFLOW_TARGET_WORLD` to the `/kv` subpath and bind a KV namespace to
+your EdgeOne Pages function:
+
+```
+WORKFLOW_TARGET_WORLD = @open-workflow/world-edgeone/kv
+WORKFLOW_BASE_URL     = https://<your-edgeone-domain>
+```
+
+Bind the namespace under the default name `EDGEONE_KV` in your EdgeOne Pages
+function settings. If your project already uses that name, set
+`WORKFLOW_EDGEONE_KV_BINDING` to the actual binding name and the world will
+look it up there instead.
+
+`withEdgeOneWorkflow` still applies — only the world implementation changes,
+not the deploy plumbing:
+
+```ts
+// next.config.ts
+import { withEdgeOneWorkflow } from "@open-workflow/world-edgeone/next";
+
+export default withEdgeOneWorkflow(
+  { reactStrictMode: false },
+  { targetWorld: "@open-workflow/world-edgeone/kv" }
+);
+```
+
+### How the KV layout works
+
+Every entity, event, queued job and stream chunk is a single KV key under a
+configurable prefix (default `owf`):
+
+```
+owf/run/<runId>                              CBOR(WorkflowRun)
+owf/idx-run-status/<status>/<runId>          presence (lex-sortable)
+owf/step/<runId>/<stepId>                    CBOR(Step)
+owf/idx-step/<runId>/<stepId>                presence
+owf/evt/<runId>/<eventId>                    CBOR(Event)
+owf/hook/<hookId>                            CBOR(Hook)
+owf/tok/<sha256(token)>                      hookId           (NX-claim key)
+owf/wait/<runId>/<correlationId>             CBOR(Wait)
+owf/job/<paddedRunAtMs>/<msgId>              CBOR(QueueJob)
+owf/lease/<msgId>                            "1" (TTL 60s — claim lease)
+owf/chunk/<runId>/<name>/<paddedIdx>         CBOR(StreamChunk)
+```
+
+The padded `runAtMs` in scheduler keys means `list({prefix: 'owf/job/'})`
+returns due jobs in chronological order — the dispatcher iterates until it
+hits a key whose timestamp portion is greater than `now` and stops.
+
+The hook token claim uses `put({ifNotExists: true})` on `owf/tok/<hash>`;
+losers fall through to a `hook_conflict` event, matching the semantics of
+the Redis-backed world. EdgeOne KV doesn't have atomic put-if-absent, so the
+adapter implements it as a check-then-put — the race window is bounded and
+the only operation that relies on it accepts the conflict-event fallback.
+
+### Programmatic use
+
+```ts
+import { createKVWorld } from "@open-workflow/world-edgeone/kv";
+
+const world = createKVWorld({
+  baseUrl: "https://my-app.example.com",
+  // kv: myBoundNamespace,    // override auto-discovery
+  // bindingName: "MY_KV",    // or just rename the lookup
+  // keyPrefix: "prod",       // namespace inside KV
+  dispatcherPollMs: 1500,
+  maxAttempts: 10,
+});
+
+await world.start();   // launches in-process dispatcher
+```
+
+For local development without a real KV, set
+`WORKFLOW_EDGEONE_KV_MEMORY=1` and the world falls back to an in-process
+`Map` (same shape, same code paths — useful for tests and demos).
+
+### Configuration env vars
+
+| Env var | Purpose |
+| --- | --- |
+| `WORKFLOW_EDGEONE_KV_BINDING` | Name of the KV namespace binding (default `EDGEONE_KV`). |
+| `WORKFLOW_EDGEONE_KV_PREFIX` | Key namespace inside KV (default `owf`). |
+| `WORKFLOW_EDGEONE_KV_DISPATCHER_POLL_MS` | Scheduler poll interval. Default `1500`. |
+| `WORKFLOW_EDGEONE_KV_DISPATCH_BATCH` | Max in-flight dispatches per tick. Default `8`. |
+| `WORKFLOW_EDGEONE_KV_LEASE_SECONDS` | Claim lease TTL. KV minimum is `60`. |
+| `WORKFLOW_EDGEONE_KV_MAX_ATTEMPTS` | Max delivery attempts before drop. Default `10`. |
+| `WORKFLOW_EDGEONE_KV_RETRY_BASE_MS` | Base backoff on dispatch failure. Default `5000`. |
+| `WORKFLOW_EDGEONE_KV_STREAM_FLUSH_MS` | Reported stream flush hint + polling interval. |
+| `WORKFLOW_EDGEONE_KV_DISABLE_DISPATCHER` | Set on read-only hosts (dashboards). |
+| `WORKFLOW_EDGEONE_KV_MEMORY` | `1` → fall back to in-process Map (dev only). |
+
+### KV trade-offs
+
+- **Lower throughput than Redis.** Every entity is a separate KV op; events
+  list and step list both do a list-by-prefix plus N gets. Fine for
+  thousands of runs/day, not for tens-of-thousands per minute.
+- **Eventual consistency.** EdgeOne / Workers KV writes propagate to read
+  nodes within a window (~60s worst case). The in-process `RunMutex`
+  serialises per-run writes within a single host; multi-host setups should
+  pin a single dispatcher to avoid two hosts racing the same lease window.
+- **No pub/sub for live streams.** `streams.get()` polls. Default poll is
+  1000ms; tune with `WORKFLOW_EDGEONE_KV_STREAM_FLUSH_MS`.
+- **Claim window ≥ 60s.** EdgeOne / Workers KV enforce a 60-second minimum
+  on TTL keys, so dispatch leases can't be shorter. A crashed dispatcher
+  delays redelivery by up to 60s. Workflow handlers are idempotent
+  (event-sourced replay), so re-dispatch after lease expiry is safe.
+- **`listByCorrelationId` is a full namespace scan.** Used by debug paths,
+  not the hot dispatch loop. Acceptable for low/medium volume.
+
+If those constraints don't fit your workload, stay on the default Redis
+subpath — `world-redirect` still gives you the same author-facing API.
 
 ## License
 

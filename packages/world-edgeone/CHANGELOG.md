@@ -1,5 +1,49 @@
 # @open-workflow/world-edgeone
 
+## 0.2.0 — 2026-06-02
+
+Adds an **EdgeOne Pages KV** backend on the `/kv` subpath. The default
+`.` subpath is unchanged — still re-exports the Redis-backed
+`world-redirect` world plus the `withEdgeOneWorkflow` helper.
+
+Selected by setting
+`WORKFLOW_TARGET_WORLD=@open-workflow/world-edgeone/kv`. The function only
+needs a KV namespace binding (default name `EDGEONE_KV`, override via
+`WORKFLOW_EDGEONE_KV_BINDING`); storage, queue, and stream chunks all live
+in that one KV. No Redis dependency at all.
+
+Layout / mechanics:
+
+- One key per entity (`run/<runId>`, `step/<runId>/<stepId>`,
+  `hook/<hookId>`, `wait/<runId>/<corr>`). Status / list indexes are
+  realised as zero-value "presence" keys with prefix-sortable names so
+  `list({prefix})` returns rows already ordered.
+- Events stored as `evt/<runId>/<eventId>` — list-by-prefix yields the
+  per-run event log in chronological order (eventId is ULID).
+- Scheduler: jobs at `job/<paddedRunAtMs>/<msgId>`, list-by-prefix returns
+  due jobs in time order; the dispatcher iterates until it passes `now` and
+  stops early. Claim lease via `put({ifNotExists: true, ttlSeconds: 60})`
+  on `lease/<msgId>`.
+- Hook token NX-claim via `put({ifNotExists: true})` on `tok/<sha256>`;
+  losers fall back to a `hook_conflict` event (matches `world-redirect`).
+- Polling streamer — KV has no pub/sub, so live `get()` polls (default
+  1000ms, tune via `WORKFLOW_EDGEONE_KV_STREAM_FLUSH_MS`).
+
+Includes an `InMemoryKV` adapter used both by the smoke-test suite (full
+event-sourced run lifecycle, terminal-state guards, step lifecycle,
+hook-conflict, scheduler, streams) and as a local-dev fallback via
+`WORKFLOW_EDGEONE_KV_MEMORY=1`.
+
+Caveats documented in README: lower throughput than Redis, eventual
+consistency, 60-second claim-lease minimum, full-namespace scan for
+`events.listByCorrelationId`. Designed for ops/admin workflows running on
+EdgeOne where pulling in a separate Redis service is unwanted overhead.
+
+Programmatic API: `createKVWorld({ kv?, bindingName?, keyPrefix?, baseUrl?,
+… })`. Re-exported from the package root as `createKVWorld`, `InMemoryKV`,
+`adaptNamespace`, `resolveEdgeOneKV` for callers that prefer the named
+import over the subpath.
+
 ## 0.1.0 — 2026-06-02
 
 Initial release. Bundles the EdgeOne Pages / OpenNext-specific workarounds

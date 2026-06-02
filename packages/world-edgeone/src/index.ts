@@ -44,3 +44,20 @@ export {
   withEdgeOneWorkflow,
   type WithEdgeOneWorkflowOptions,
 } from './with-edgeone.js';
+
+/**
+ * Self-contained KV-backed World. Use the `/kv` subpath to load it via
+ * `WORKFLOW_TARGET_WORLD=@open-workflow/world-edgeone/kv`. The programmatic
+ * factory is also re-exported here as `createKVWorld` for callers that
+ * construct their world explicitly (tests, hosts, dashboards).
+ */
+export {
+  createKVWorld,
+  type KVWorld,
+  type KVWorldConfig,
+  type KV,
+  type KVNamespaceLike,
+  InMemoryKV,
+  adaptNamespace,
+  resolveEdgeOneKV,
+} from './kv/index.js';
