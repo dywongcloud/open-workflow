@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "types": ["node"],
+    // Sheets rows are bag-of-string records; the strict indexed-access flag
+    // forces verbose `?? ''` defaults on every cell read. Relaxed for this
+    // package only — the schema layer guarantees every column position is
+    // present in the row (rowToRecord defaults missing cells to '').
+    "noUncheckedIndexedAccess": false
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["dist", "node_modules"]
+}

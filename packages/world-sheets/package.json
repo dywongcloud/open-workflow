@@ -1,0 +1,32 @@
+{
+  "name": "@open-workflow/world-sheets",
+  "version": "0.1.0",
+  "description": "Workflow World backed entirely by a Google Sheet — durable event log, materialized run/step/hook/wait entities, and a polling-based dispatcher all stored as rows non-engineers can read, filter, and comment on. Rate-limit bound (~60 ops/min); built for low-volume orchestration where the spreadsheet IS the observability tool.",
+  "type": "module",
+  "license": "Apache-2.0",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@workflow/errors": "5.0.0-beta.5",
+    "@workflow/world": "5.0.0-beta.5",
+    "cbor-x": "^1.6.0",
+    "ulid": "~3.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "22.19.0",
+    "typescript": "^5.9.3"
+  }
+}
