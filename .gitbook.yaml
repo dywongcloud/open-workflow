@@ -1,0 +1,8 @@
+root: ./packages/world-redirect/docs/
+
+structure:
+  readme: README.md
+  summary: SUMMARY.md
+
+redirects:
+  architecture: ./02-architecture.md
